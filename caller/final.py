@@ -169,11 +169,12 @@ def handle_recordings():
                 'isCallEnded': False,
                 'aiResponse': True,
             }
+            print("Payload: ", payload)
             url = "http://localhost:4000/api/call"
             try:
                 response = requests.post(url, json=payload)
                 if response.status_code == 200:
-                    print("POST request successful about message")
+                    print("POST request successful about message with AI response flag set to True")
                 else:
                     print(f"POST request failed with status code {response.status_code} and message {response.text}")
             except requests.exceptions.RequestException as e:
