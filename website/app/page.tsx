@@ -6,8 +6,9 @@ import { Mic } from 'lucide-react';
 
 export default function Home() {
   const [callStatus, setCallStatus] = useState("Waiting for call");
+  const [isAIResponse, setIsAIResponse] = useState(false);
   const [messageData, setMessageData] = useState<any>([
-    
+    'test awdkjabklajwbd.kjawbwd.,a wdljkawndkljanwljdh olawnd;ahsodh poahdo;j hwipdujh iojdhioep hdiupeh odd haoidh qiopuh'
   ]);
   useEffect(() => {
     const fetchCallStatus = async () => {
@@ -21,6 +22,7 @@ export default function Home() {
         console.log("API Call response", data);
         console.log("Is Message", data.isChatMessage);
         console.log("Message is", data.chatMessage);
+        setIsAIResponse(data.isAIResponse);
         if (data.isChatMessage)
           setMessageData((prevData:any) => [...prevData, data.chatMessage]);
         if (data.isCallEnded) {
@@ -52,7 +54,7 @@ export default function Home() {
           <div className="p-4 pr-0 justify-end flex flex-col mt-12 h-xxlg">
             <div className="overflow-auto pr-2">
               {messageData.length>0?messageData.map((e:string, i:number) =>
-                i % 2 == 0 ? <Chat msg={e} /> : <ResponseChat msg={e} />
+                !isAIResponse ? <Chat msg={e} /> : <ResponseChat msg={e} />
               ):<div className="text-center text-slate-500">Start a phone call to start receiving messages</div>}
             </div>
           </div>
