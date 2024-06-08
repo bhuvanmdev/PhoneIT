@@ -2,7 +2,7 @@
   "name": "website",
   "version": "0.1.0",
   "private": true,
-    "type": "module",
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -15,6 +15,7 @@
     "next": "14.2.3",
     "react": "^18",
     "react-dom": "^18",
+    "react-toastify": "^10.0.5",
     "ws": "^8.17.0"
   },
   "devDependencies": {
