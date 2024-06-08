@@ -3,17 +3,38 @@ import Chat from "@/components/Chat";
 import ResponseChat from "@/components/ResponseChat";
 import { SendIcon } from "lucide-react";
 import { useState } from "react";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const genAI = new GoogleGenerativeAI('AIzaSyCC-9zRe_CNF_E4UKksTjXQ9bVUvtsMrVA');
 
 const page = () => {
   const [messageData, setMessageData] = useState<any>([]);
   const [inputMsg, setInputMsg] = useState("");
   const handleEnter = () => {
+    const restext = run(inputMsg);
     setMessageData((prevData: any) => [
       ...prevData,
-        { message: inputMsg, sender: "user" },
+      { message: inputMsg, sender: "user" },
+      { message: restext, sender: "agent" },
     ]);
     setInputMsg("");
+  };
+  async function run(inputMsg: string) {
+
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const prompt = `Please act as a personal assistant who helps users with their problems. Respond to queries with clear, concise, and helpful information, providing step-by-step guidance when necessary. Be polite, professional, and empathetic in your tone. Assist with a variety of topics, including technical issues, travel planning, project advice, and more, ensuring the user's needs are met efficiently.
+    
+    User:${inputMsg}
+    AI:`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    return text;
+    
   }
+
   return (
     <div className="flex min-h-screen justify-between p-24">
       <div className="flex w-1/2 flex-col">
@@ -26,7 +47,11 @@ const page = () => {
             <div className="overflow-auto pr-2">
               {messageData.length > 0 ? (
                 messageData.map((e: any) =>
-                  e.sender !=='user' ? <Chat msg={e.message} /> : <ResponseChat msg={e.message} />
+                  e.sender !== "user" ? (
+                    <Chat msg={e.message} />
+                  ) : (
+                    <ResponseChat msg={e.message} />
+                  )
                 )
               ) : (
                 <div className="text-center text-slate-500">
@@ -37,20 +62,24 @@ const page = () => {
           </div>
           <div className="absolute bottom-0 w-full">
             <div className="relative">
-            <input
-              type="text"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleEnter()
-                }
-              }}
+              <input
+                type="text"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleEnter();
+                  }
+                }}
                 value={inputMsg}
                 onChange={(e) => setInputMsg(e.target.value)}
-              className="w-full p-4 border-t-2 border-gray-300 text-slate-950"
-              placeholder="Type your message here"
-            />
-            <button className="absolute right-2 top-1 z-50 bg-slate-900 rounded-xl p-4" onClick={handleEnter}><SendIcon size={16}/></button>
-            
+                className="w-full p-4 border-t-2 border-gray-300 text-slate-950"
+                placeholder="Type your message here"
+              />
+              <button
+                className="absolute right-2 top-1 z-50 bg-slate-900 rounded-xl p-4"
+                onClick={handleEnter}
+              >
+                <SendIcon size={16} />
+              </button>
             </div>
           </div>
         </div>
