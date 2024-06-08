@@ -11,11 +11,15 @@ let chatMessageValue: string | null = null;
 
 export async function GET(request: Request) {
     console.log("API Call made to check call status")
+    const currMsg=chatMessageValue;
+    const currIsMsg=isChatMessage;
+    chatMessageValue=null;
+    isChatMessage=false;
     return NextResponse.json({ 
         isCallOngoing: isCallOngoing , 
         isCallEnded : isCallEnded,
-        chatMessage : chatMessageValue,
-        isChatMessage : isChatMessage
+        chatMessage : currMsg,
+        isChatMessage : currIsMsg
     }, { status: 200 }, 
         );
 }
