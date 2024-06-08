@@ -3,16 +3,28 @@ import { NextResponse } from "next/server";
 // app/api/call/route.ts
 
 
-let flagValue: boolean = false;
+let isCallOngoing: boolean = false;
+let isCallEnded: boolean = false;
+let messageValue: string = "Waiting for Call";
+let chatMessageValue: string | null = null;
 
 export async function GET(request: Request) {
-    return NextResponse.json({ flag: flagValue }, { status: 200 });
+    console.log("API Call made to check call status")
+    return NextResponse.json({ isCallOngoing: isCallOngoing , 
+        message : messageValue ,
+        isCallEnded : isCallEnded,
+        chatMessage : chatMessageValue
+    }, { status: 200 }, 
+        );
 }
 
 export async function POST(request: Request) {
     const origin = request.headers.get('origin');
     const body = await request.json();
-    flagValue = body.flag;
-
-    return NextResponse.json({ message: 'Call Ongoing' }, { status: 200 });
+    isCallOngoing = body.isCallOngoing;
+    isCallEnded = body.isCallEnded;
+    if (body.isChatMessage != null){
+    chatMessageValue = body.chatMessage;
+    }
+    return NextResponse.json({ message: 'Received at website server' }, { status: 200 });
 }

@@ -14,7 +14,12 @@ export default function Home() {
         }
         const data = await response.json();
         console.log("API Call response", data.flag)
-        setCallStatus(data.flag ? 'Call Ongoing' : 'Waiting for call');
+        if (data.isCallEnded) { 
+          setCallStatus('Call Ended');
+          return;
+        }
+        setCallStatus(
+          data.isCallOngoing ? 'Call Ongoing' : 'Waiting for call');
       } catch (error) {
         console.error('Error fetching call status:', error);
       }
