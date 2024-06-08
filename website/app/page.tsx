@@ -13,7 +13,9 @@ export default function Home() {
           throw new Error('Network response was not ok');
         }
         const data = await response.json();
-        console.log("API Call response", data.flag)
+        console.log("API Call response", data)
+        console.log("Is Message" , data.isChatMessage)
+        console.log("Message is" , data.chatMessage)
         if (data.isCallEnded) { 
           setCallStatus('Call Ended');
           return;

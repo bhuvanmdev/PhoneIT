@@ -6,6 +6,7 @@ import google.generativeai as genai
 from datetime import datetime
 from twilio.rest import Client
 from twilio.twiml.voice_response import VoiceResponse, Gather
+import requests
 import re
 
 dotenv_path = join("./.env")
@@ -53,7 +54,7 @@ app = Flask(__name__)
 
 @app.route("/", methods=['POST','GET'])
 def call():
-    global uuid,call
+    global uuid, call
     l.clear()
     call = s = None
     k = 1
@@ -64,13 +65,24 @@ def call():
         # machine_detection='Enable',
         # machine_detection_timeout=10,
         url=f'{URL}/twiml',
-        method='POST',
-        
+        method='POST', 
     )
     uuid = call.sid
-    call = client.calls(uuid) #.update by method,url or twiml(xml) 
-    return "Call initiated"
+    call = client.calls(uuid)
 
+    # Make a POST request to localhost:4000/api/calls
+    payload = {
+        'isCallOngoing': True,
+        'isCallEnded': False,
+        'isChatMessage' : False
+    }
+    url = 'http://localhost:4000/api/call'
+    response = requests.post(url, json=payload)
+    if response.status_code == 200:
+        print("Request sent to website about call initiation ")
+        return "Call initiated"
+    else:
+        return "Failed to initiate call"
 @app.route('/twiml', methods=['POST'])
 def twiml():
     global k, lang
@@ -110,6 +122,20 @@ def handle_recordings():
     transcription = request.values.get('SpeechResult')
     # transcription = "can you tell me more about an elephant?"
     print(f"\n\nTranscription: {transcription}\n\n")
+    
+    url = 'http://localhost:4000/api/call'
+    payload = {
+        'chatMessage': transcription,
+        'isChatMessage': True,
+        'isCallOngoing': True,
+        'isCallEnded': False,
+    }
+    response = requests.post(url, data=payload)
+    if response.status_code == 200:
+        print("POST request successful about message")
+    else:
+        print("POST request failed")
+
     for _ in range(3):
         try:
             #model

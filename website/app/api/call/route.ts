@@ -11,7 +11,6 @@ let chatMessageValue: string | null = null;
 export async function GET(request: Request) {
     console.log("API Call made to check call status")
     return NextResponse.json({ isCallOngoing: isCallOngoing , 
-        message : messageValue ,
         isCallEnded : isCallEnded,
         chatMessage : chatMessageValue
     }, { status: 200 }, 
