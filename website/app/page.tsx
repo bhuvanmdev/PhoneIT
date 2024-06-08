@@ -41,8 +41,8 @@ export default function Home() {
   return (
     <main className="flex min-h-screen justify-between p-24">
       <div className="flex w-1/2 flex-col justify-center">
-        <div className="text-4xl text-center flex flex-col items-center justify-center">
-          {callStatus === "Call Ongoing" ? <Mic className="glow-icon" size={16}/>:null}
+        <div className="text-4xl text-center flex flex-col items-center justify-center gap-4">
+          {callStatus === "Call Ongoing" ? <div className="p-4 glow-icon rounded-full"><Mic className="" size={64}/></div>:null}
           {callStatus}
         </div>
       </div>
