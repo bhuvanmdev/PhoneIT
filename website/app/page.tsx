@@ -82,7 +82,7 @@ export default function Home() {
           <div className="p-4 pr-0 justify-end flex flex-col mt-12 h-xxlg">
             <div className="overflow-auto pr-2">
               {messageData.length>0?messageData.map((e:string, i:number) =>
-                i%2==0 ? <Chat msg={parseAIResponse(e)} /> : <ResponseChat msg={e} />
+                i%2!==0 ? <Chat msg={parseAIResponse(e)} /> : <ResponseChat msg={e} />
               ):<div className="text-center text-slate-500">Start a phone call to start receiving messages</div>}
             </div>
           </div>
