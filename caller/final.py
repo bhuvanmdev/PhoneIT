@@ -140,6 +140,7 @@ def handle_recordings():
         'isChatMessage': True,
         'isCallOngoing': True,
         'isCallEnded': False,
+        'aiResponse': False
     }
     url = "http://localhost:4000/api/call"
 
@@ -159,8 +160,24 @@ def handle_recordings():
                 {'role': 'model', 'parts': ["Ok sure, Ask your query!"]},
                 {'role': 'user', 'parts': [transcription]}
             ])
-            print(res)
+            print("The AI generated response is: ", res)
             res = res.text
+            payload = {
+                'chatMessage': res,
+                'isChatMessage': True,
+                'isCallOngoing': True,
+                'isCallEnded': False,
+                'aiResponse': True,
+            }
+            url = "http://localhost:4000/api/call"
+            try:
+                response = requests.post(url, json=payload)
+                if response.status_code == 200:
+                    print("POST request successful about message")
+                else:
+                    print(f"POST request failed with status code {response.status_code} and message {response.text}")
+            except requests.exceptions.RequestException as e:
+                print(f"Request failed: {e}")
             l.append(re.search(PATTERN, res, re.IGNORECASE).group(1).strip())
             break
         except Exception as e:
