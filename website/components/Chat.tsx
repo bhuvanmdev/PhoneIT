@@ -1,6 +1,6 @@
 const Chat = ({msg}:{msg:String;}) => {
   return (
-    <div>{msg}</div>
+    <div className="p-4">{msg}</div>
   )
 }
 
