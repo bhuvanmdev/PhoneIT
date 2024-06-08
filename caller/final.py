@@ -6,8 +6,34 @@ import google.generativeai as genai
 from datetime import datetime
 from twilio.rest import Client
 from twilio.twiml.voice_response import VoiceResponse, Gather
-import requests
 import re
+from IndicTrans2.huggingface_interface.models.main_functions import initialize_model_and_tokenizer
+import torch
+import time
+from datetime import datetime as d
+import google
+import os,re
+from langchain.embeddings import HuggingFaceEmbeddings
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_text_splitters import CharacterTextSplitter, RecursiveCharacterTextSplitter
+from langchain.embeddings import CacheBackedEmbeddings
+from langchain_community.vectorstores import FAISS
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_community.vectorstores import FAISS
+from translator import *
+
+BATCH_SIZE=4
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+quantization = "4-bit"
+en_indic_ckpt_dir1 = "ai4bharat/indictrans2-en-indic-dist-200M"
+en_indic_tokenizer1, en_indic_model1 = initialize_model_and_tokenizer(en_indic_ckpt_dir1, "en-indic","4-bit",DEVICE=DEVICE)
+indic_en_ckpt_dir = "ai4bharat/indictrans2-indic-en-dist-200M"  # ai4bharat/indictrans2-indic-en-dist-200M
+indic_en_tokenizer, indic_en_model = initialize_model_and_tokenizer(indic_en_ckpt_dir, "indic-en", "4-bit",DEVICE=DEVICE)
+
+
+
+
+# from translate import libre_translate_text as lbt
 
 dotenv_path = join("./.env")
 load_dotenv(dotenv_path)
@@ -21,7 +47,7 @@ GKEY = os.getenv("GKEY")
 LLM = os.getenv("LLM")
 PROMPT = f"""You are a helpful AI voice all agent who responds to user queries. Please generate text output that is optimized for Text-to-Speech (TTS) models. Follow these guidelines to ensure clarity and ease of understanding:
 1. Use Proper Grammar and Punctuation: Ensure that the text is grammatically correct and punctuated appropriately.
-2. Avoid Emojis and Problamatic Special Characters: Do not include emojis, symbols, or any special characters that are not necessary for the content. This includes boldizing, intalics, and other formatting (i.e no "**", ":" to be included).
+2. Avoid Emojis and Problamatic Special Characters: Do not include emojis, symbols, or any special characters that are not necessary for the content. This includes boldizing, intalics, and other formatting (i.e no "", ":" to be included).
 3. Use Full Words and Sentences: Do not use abbreviations, acronyms, or contractions unless they are widely recognized and necessary.
 4. Maintain a Formal and Friendly Tone: Keep the tone formal and professional.
 5. Avoid Slang and Colloquialisms: Use standard language and avoid regional slang or colloquial expressions.
@@ -33,12 +59,41 @@ PROMPT = f"""You are a helpful AI voice all agent who responds to user queries. 
 Example:
 User: I have lost my wallet, how do i get it back?
 AI: "<Say>To make a phone call, you will need a phone and the person's phone number. First, locate the phone number you wish to call. Then, open your phone's dialing app.  Enter the phone number using the keypad and press the call button. The person you are calling will receive your call.</Say>"
+Context:
 """
 PATTERN = r"\<say\>(.*?)\</say\>"
 
 genai.configure(api_key=GKEY)
 
 model = genai.GenerativeModel(LLM)
+
+loader_neuro = PyPDFLoader("/home/abhyuday/Desktop/translator/Scheme Booklet 2022-23.pdf")
+pages_neuro = loader_neuro.load_and_split()
+
+# Define the path to the pre-trained model you want to use
+modelPath = "sentence-transformers/all-MiniLM-l6-v2"
+
+# Create a dictionary with model configuration options, specifying to use the CPU for computations
+model_kwargs = {'device':'cpu'}
+
+# Create a dictionary with encoding options, specifically setting 'normalize_embeddings' to False
+encode_kwargs = {'normalize_embeddings': False}
+
+# Initialize an instance of HuggingFace
+#Embeddings with the specified parameters
+embeddings = HuggingFaceEmbeddings(
+    model_name=modelPath,     # Provide the pre-trained model's path
+    model_kwargs=model_kwargs, # Pass the model configuration options
+    encode_kwargs=encode_kwargs # Pass the encoding options
+)
+splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=30)
+documents = splitter.split_documents(pages_neuro)
+db = FAISS.from_documents(documents, embeddings)
+
+retriever = db.as_retriever(search_kwargs={"k":2})
+
+
+
 
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 print("env values:", TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_NUMBER, URL, TO_NUM, GKEY)
@@ -48,13 +103,13 @@ k = 1
 lang = "en-IN"
 dic = {'1': 'en-IN', '2': 'hi-IN', '3': 'kn-IN', '4': 'bn-IN'}  # 0 style for kan and beng
 call = s = None
-app = Flask(__name__)
+app = Flask(_name_)
 
 
 
 @app.route("/", methods=['POST','GET'])
 def call():
-    global uuid, call
+    global uuid,call
     l.clear()
     call = s = None
     k = 1
@@ -65,24 +120,13 @@ def call():
         # machine_detection='Enable',
         # machine_detection_timeout=10,
         url=f'{URL}/twiml',
-        method='POST', 
+        method='POST',
+        
     )
     uuid = call.sid
-    call = client.calls(uuid)
+    call = client.calls(uuid) #.update by method,url or twiml(xml) 
+    return "Call initiated"
 
-    # Make a POST request to localhost:4000/api/calls
-    payload = {
-        'isCallOngoing': True,
-        'isCallEnded': False,
-        'isChatMessage' : False
-    }
-    url = 'http://localhost:4000/api/call'
-    response = requests.post(url, json=payload)
-    if response.status_code == 200:
-        print("Request sent to website about call initiation ")
-        return "Call initiated"
-    else:
-        return "Failed to initiate call"
 @app.route('/twiml', methods=['POST'])
 def twiml():
     global k, lang
@@ -90,7 +134,7 @@ def twiml():
     gather = Gather(num_digits=1, action=f'{URL}/webhooks/input')
     gather.say('Press 1 for English, 2 for Hindi, 3 for Kannada, 4 for Bengali.')
     response.append(gather)
-    # print(f"\n\n\nstr:{response.__str__()},type:{type(response)},dir:{response.__dir__()},raw:{response}\n\n\n")
+    # print(f"\n\n\nstr:{response._str()},type:{type(response)},dir:{response.dir_()},raw:{response}\n\n\n")
     return str(response)
 
 @app.route('/webhooks/input', methods=['POST'])
@@ -112,30 +156,41 @@ def handle_input():
         response.append(gather)
         s = datetime.now()
     k += 1
-    print(response.__str__(),response.__dir__())
+    print(response._str(),response.dir_())
     return str(response)
 
 @app.route('/webhooks/recordings', methods=['POST'])
 def handle_recordings():
+    PROMPT = f"""You are a helpful AI voice all agent who responds to user queries. Please generate text output that is optimized for Text-to-Speech (TTS) models. Follow these guidelines to ensure clarity and ease of understanding:
+1. Use Proper Grammar and Punctuation: Ensure that the text is grammatically correct and punctuated appropriately.
+2. Avoid Emojis and Problamatic Special Characters: Do not include emojis, symbols, or any special characters that are not necessary for the content. This includes boldizing, intalics, and other formatting (i.e no "", ":" to be included).
+3. Use Full Words and Sentences: Do not use abbreviations, acronyms, or contractions unless they are widely recognized and necessary.
+4. Maintain a Formal and Friendly Tone: Keep the tone formal and professional.
+5. Avoid Slang and Colloquialisms: Use standard language and avoid regional slang or colloquial expressions.
+6. Structure the Text Clearly: Use paragraphs to separate different ideas and ensure the text flows logically.
+7. Use Simple Language: Avoid complex words or phrases when simpler alternatives are available.
+8. Provide Clear Context: Ensure that the content is self-explanatory and does not rely on external context to be understood.
+9. Make The Text Concise: Keep the text concise and to the point, avoiding unnecessary details or information.
+10. Use SSML format: Format the text into "twilio's" version of SSML between <say> and </say> tag. There can be only 1 <say> and </say> tag.
+Example:
+User: I have lost my wallet, how do i get it back?
+AI: "<Say>To make a phone call, you will need a phone and the person's phone number. First, locate the phone number you wish to call. Then, open your phone's dialing app.  Enter the phone number using the keypad and press the call button. The person you are calling will receive your call.</Say>"
+Context:
+"""
     print(request,request.values)
     # recording_url = request.values.get('RecordingUrl')
     transcription = request.values.get('SpeechResult')
+    print("adfal;kdfja; Transcription",transcription)
+    # print(f"\n\nTranslation: {transcription}\n\n")
+    if lang!="en-IN":
+        transcription=translate(transcription,lang,0,en_indic_tokenizer1,en_indic_model1,indic_en_tokenizer,indic_en_model,ip)
+    # transcription = lbt(transcription, lang.split('-')[0],'en')
     # transcription = "can you tell me more about an elephant?"
-    print(f"\n\nTranscription: {transcription}\n\n")
-    
-    url = 'http://localhost:4000/api/call'
-    payload = {
-        'chatMessage': transcription,
-        'isChatMessage': True,
-        'isCallOngoing': True,
-        'isCallEnded': False,
-    }
-    response = requests.post(url, data=payload)
-    if response.status_code == 200:
-        print("POST request successful about message")
-    else:
-        print("POST request failed")
-
+    con=""
+    for x in retriever.get_relevant_documents(transcription): #trans
+        con += x.page_content + '\n'
+    PROMPT += con
+    print(f"\n\nTranslation: {transcription}\n\n")
     for _ in range(3):
         try:
             #model
@@ -144,7 +199,12 @@ def handle_recordings():
                     'parts':[transcription]}])
             print(res)
             res = res.text
-            l.append(re.search(PATTERN, res,re.IGNORECASE).group(1).strip())
+            res = re.search(PATTERN, res,re.IGNORECASE).group(1).strip()
+            if lang!="en-IN":
+                res=translate(res,lang,1,en_indic_tokenizer1,en_indic_model1,indic_en_tokenizer,indic_en_model,ip)
+            # res = lbt(re.search(PATTERN, res,re.IGNORECASE).group(1).strip(), 'en',lang.split('-')[0])
+            print(res)
+            l.append(res)
             break
         except:pass
     # return '200'
@@ -153,5 +213,5 @@ def handle_recordings():
     print(datetime.now()-s)
     return str(response)
 
-if __name__ == '__main__':
+if _name_ == '_main_':
     app.run(port=3000)
