@@ -63,13 +63,3 @@ body::-webkit-scrollbar-thumb {
   background-clip: content-box;
   background-color: #ffffff;
 }
-
-input::-webkit-file-upload-button{
-  background-color: #F0ECE5;
-  color: #161A30;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 3rem;
-  cursor: pointer;
-  margin-right: 1rem;
-}
