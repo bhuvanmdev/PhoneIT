@@ -1,9 +1,16 @@
 "use client";
+import Chat from "@/components/Chat";
+import ResponseChat from "@/components/ResponseChat";
 import { useState, useEffect } from "react";
 
 export default function Home() {
   const [callStatus, setCallStatus] = useState("Waiting for call");
-
+  const [messageData,setMessageData] = useState([
+    "First message",
+    "sencond message",
+    "third message",
+    "fourth message",
+  ]);
   useEffect(() => {
     const fetchCallStatus = async () => {
       try {
@@ -13,11 +20,12 @@ export default function Home() {
           throw new Error("Network response was not ok");
         }
         const data = await response.json();
-        console.log("API Call response", data)
-        console.log("Is Message" , data.isChatMessage)
-        console.log("Message is" , data.chatMessage)
-        if (data.isCallEnded) { 
-          setCallStatus('Call Ended');
+        console.log("API Call response", data);
+        console.log("Is Message", data.isChatMessage);
+        console.log("Message is", data.chatMessage);
+        setMessageData((prevData) => [...prevData, data.chatMessage]);
+        if (data.isCallEnded) {
+          setCallStatus("Call Ended");
           return;
         }
         setCallStatus(data.isCallOngoing ? "Call Ongoing" : "Waiting for call");
@@ -30,7 +38,9 @@ export default function Home() {
 
     return () => clearInterval(intervalId);
   }, []);
+
   
+
   return (
     <main className="flex min-h-screen justify-between p-24">
       <div className="flex w-1/2 flex-col justify-between">
@@ -40,9 +50,13 @@ export default function Home() {
       </div>
       <div className="flex flex-col w-1/2 relative">
         <div className="ml-4 h-full border-2 rounded-md">
-          <div className="p-4 text-xl border-b-2">Live transcription</div>
-          <div className="p-4">
-            <div>Messages</div>
+          <div className="p-4 text-xl absolute w-full">Live transcription</div>
+          <div className="p-4 justify-end flex flex-col h-full">
+            <div>
+              {messageData.map((e, i) =>
+                i % 2 == 0 ? <Chat msg={e} /> : <ResponseChat msg={e} />
+              )}
+            </div>
           </div>
         </div>
       </div>
