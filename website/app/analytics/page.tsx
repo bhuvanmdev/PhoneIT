@@ -1,6 +1,6 @@
 const page = () => {
   return (
-    <div>Analytics page</div>
+    <div className="flex min-h-screen flex-col gap-4 p-24">Analytics page</div>
   )
 }
 
