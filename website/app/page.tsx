@@ -14,8 +14,11 @@ export default function Home() {
   const [isAIResponse, setIsAIResponse] = useState(false);
   const [messageData, setMessageData] = useState<any>([]);
   useEffect(() => {
+    if (callStatus === "Call Ended") {
+      return;
+    }
+
     const fetchCallStatus = async () => {
-      
       try {
         const response = await fetch("/api/call");
         console.log("API Call made to check call status");
@@ -41,10 +44,9 @@ export default function Home() {
     };
 
     const intervalId = setInterval(fetchCallStatus, 2000);
-    
 
     return () => clearInterval(intervalId);
-  }, []);
+  }, [callStatus]);
 
   const parseAIResponse = (response: string) => {
     return response.replace(/<say>|<\/say>/g, "");
