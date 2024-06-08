@@ -68,24 +68,29 @@ def call():
     uuid = call.sid
     call = client.calls(uuid)
     print("Before payload")
-    # Make a POST request to localhost:4000/api/calls
+    # Make a POST request to the specified URL
     payload = {
         'isCallOngoing': True,
         'isCallEnded': False,
-        'isChatMessage' : False
+        'isChatMessage': False
     }
     # headers = {
-    #         "ngrok-skip-browser-warning": "69420",
-    #       },
-    # url = 'https://c054-2401-4900-4bbf-57ec-b40d-4a91-bf2e-8ba4.ngrok-free.app/api/call'
-    url = 'http://localhost:4000/api/call'
-    response = requests.post(url, json=payload)
-    
-    if response.status_code == 200:
-        print("Request sent to website about call initiation ")
-        return "Call initiated"
-    else:
-        return "Failed to initiate call"
+    #     "ngrok-skip-browser-warning": "69420"
+    # }
+    # url = 'https://a359-103-174-71-194.ngrok-free.app/api/call'
+    url = "http://localhost:4000/api/call"
+    try:
+        response = requests.post(url, json=payload)
+        if response.status_code == 200:
+            print("Request sent to website about call initiation")
+            return "Call initiated"
+        else:
+            print(f"Failed to initiate call: {response.status_code} - {response.text}")
+            return "Failed to initiate call", response.status_code
+    except requests.exceptions.RequestException as e:
+        print(f"Request failed: {e}")
+        return "Failed to initiate call due to request error", 500
+
 
 @app.route('/twiml', methods=['POST'])
 def twiml():
@@ -95,13 +100,12 @@ def twiml():
     gather = Gather(num_digits=1, action=f'{URL}/webhooks/input')
     gather.say('Press 1 for English, 2 for Hindi, 3 for Kannada, 4 for Bengali.')
     response.append(gather)
-    # print(f"\n\n\nstr:{response.__str__()},type:{type(response)},dir:{response.__dir__()},raw:{response}\n\n\n")
     return str(response)
 
 @app.route('/webhooks/input', methods=['POST'])
 def handle_input():
     print("Error occurred after handle input")
-    global k, lang,s
+    global k, lang, s
     digits = request.values.get('Digits', None)
     if k == 1:
         l.append({1: 'Hello', 2: 'नमस्ते', 3: 'ನಮಸ್ಕಾರ', 4: 'হ্যালো'}.get(int(digits), 'Hello'))
@@ -110,59 +114,62 @@ def handle_input():
     if digits == '0':
         response.say('Goodbye')
     else:
-        # while len(l) != k: pass
         print(f"DONE {k}")
-        # response.record(finish_on_key='1', transcribe=True, transcribe_callback=f'{URL}/webhooks/recordings')
-        gather =  Gather(input="speech",language=lang, action=f'{URL}/webhooks/recordings', speech_timeout=3)# Gather(num_digits='1',action=f'{URL}/webhooks/recordings')
+        gather = Gather(input="speech", language=lang, action=f'{URL}/webhooks/recordings', speech_timeout=3)
         gather.say(l[-1], language=lang)
         response.append(gather)
         s = datetime.now()
     k += 1
-    print(response.__str__(),response.__dir__())
+    print(response.__str__(), response.__dir__())
     return str(response)
 
 @app.route('/webhooks/recordings', methods=['POST'])
 def handle_recordings():
     print("Error occurred after this")
-    print(request,request.values)
-    # recording_url = request.values.get('RecordingUrl')
+    print(request, request.values)
+    
     transcription = request.values.get('SpeechResult')
-    # transcription = "can you tell me more about an elephant?"
     print(f"\n\nTranscription: {transcription}\n\n")
     
-    # url = 'https://c054-2401-4900-4bbf-57ec-b40d-4a91-bf2e-8ba4.ngrok-free.app/api/call'
+    # url = 'https://a359-103-174-71-194.ngrok-free.app/api/call'
     # headers = {
-    #         "ngrok-skip-browser-warning": "69420",
-    #       },
-    url = 'http://localhost:4000/api/call'
-
+    #     "ngrok-skip-browser-warning": "69420"
+    # }
     payload = {
         'chatMessage': transcription,
         'isChatMessage': True,
         'isCallOngoing': True,
         'isCallEnded': False,
     }
-    response = requests.post(url, json=payload)
-    if response.status_code == 200:
-        print("POST request successful about message")
-    else:
-        print("POST request failed with status code and message" , response.status_code, response.text)
+    url = "http://localhost:4000/api/call"
+
+    try:
+        response = requests.post(url, json=payload)
+        if response.status_code == 200:
+            print("POST request successful about message")
+        else:
+            print(f"POST request failed with status code {response.status_code} and message {response.text}")
+    except requests.exceptions.RequestException as e:
+        print(f"Request failed: {e}")
 
     for _ in range(3):
         try:
-            #model
-            res = model.generate_content([{'role':'user',
-                    'parts':[PROMPT]},{"role":"model","parts":["Ok sure, Ask your query!"] },{'role':'user',
-                    'parts':[transcription]}])
+            res = model.generate_content([
+                {'role': 'user', 'parts': [PROMPT]},
+                {'role': 'model', 'parts': ["Ok sure, Ask your query!"]},
+                {'role': 'user', 'parts': [transcription]}
+            ])
             print(res)
             res = res.text
-            l.append(re.search(PATTERN, res,re.IGNORECASE).group(1).strip())
+            l.append(re.search(PATTERN, res, re.IGNORECASE).group(1).strip())
             break
-        except:pass
-    # return '200'
+        except Exception as e:
+            print(f"Error in model generation: {e}")
+            pass
+
     response = VoiceResponse()
     response.redirect(f'{URL}/webhooks/input')
-    print(datetime.now()-s)
+    print(datetime.now() - s)
     return str(response)
 
 if __name__ == '__main__':

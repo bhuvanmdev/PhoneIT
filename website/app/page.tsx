@@ -33,7 +33,7 @@ export default function Home() {
       }
     };
 
-    const intervalId = setInterval(fetchCallStatus, 1000);
+    const intervalId = setInterval(fetchCallStatus, 2000);
 
     return () => clearInterval(intervalId);
   }, []);
