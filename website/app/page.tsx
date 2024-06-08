@@ -2,6 +2,7 @@
 import Chat from "@/components/Chat";
 import ResponseChat from "@/components/ResponseChat";
 import { useState, useEffect } from "react";
+import { Mic } from 'lucide-react';
 
 export default function Home() {
   const [callStatus, setCallStatus] = useState("Waiting for call");
@@ -39,8 +40,9 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen justify-between p-24">
-      <div className="flex w-1/2 flex-col justify-between">
-        <div className="text-4xl text-center h-full w-full flex flex-col items-center justify-center">
+      <div className="flex w-1/2 flex-col justify-center">
+        <div className="text-4xl text-center flex flex-col items-center justify-center">
+          {callStatus === "Call Ongoing" ? <Mic className="glow-icon" size={16}/>:null}
           {callStatus}
         </div>
       </div>
