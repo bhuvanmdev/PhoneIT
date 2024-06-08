@@ -28,23 +28,19 @@ export default function Home() {
 
     return () => clearInterval(intervalId);
   }, []);
-
+  
   return (
     <main className="flex min-h-screen justify-between p-24">
       <div className="flex w-1/2 flex-col justify-between">
-        <div className="text-4xl text-center h-full w-full flex flex-col items-center justify-center">{callStatus}</div>
-        <button onClick={() => setCallStatus("Call Ongoing")}>
-          Receive Call
-        </button>
+        <div className="text-4xl text-center h-full w-full flex flex-col items-center justify-center">
+          {callStatus}
+        </div>
       </div>
-      <div className="h-full w-1/2">
-        <div className="m-4 p-4 border-2">
-          <div>Live transcription</div>
-          <div>
+      <div className="flex flex-col w-1/2 relative">
+        <div className="ml-4 h-full border-2 rounded-md">
+          <div className="p-4 text-xl border-b-2">Live transcription</div>
+          <div className="p-4">
             <div>Messages</div>
-            <div>
-              <input type="text" />
-            </div>
           </div>
         </div>
       </div>
