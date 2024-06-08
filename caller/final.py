@@ -50,8 +50,6 @@ dic = {'1': 'en-IN', '2': 'hi-IN', '3': 'kn-IN', '4': 'bn-IN'}  # 0 style for ka
 call = s = None
 app = Flask(__name__)
 
-
-
 @app.route("/", methods=['POST','GET'])
 def call():
     global uuid, call
@@ -69,23 +67,30 @@ def call():
     )
     uuid = call.sid
     call = client.calls(uuid)
-
+    print("Before payload")
     # Make a POST request to localhost:4000/api/calls
     payload = {
         'isCallOngoing': True,
         'isCallEnded': False,
         'isChatMessage' : False
     }
+    # headers = {
+    #         "ngrok-skip-browser-warning": "69420",
+    #       },
+    # url = 'https://c054-2401-4900-4bbf-57ec-b40d-4a91-bf2e-8ba4.ngrok-free.app/api/call'
     url = 'http://localhost:4000/api/call'
     response = requests.post(url, json=payload)
+    
     if response.status_code == 200:
         print("Request sent to website about call initiation ")
         return "Call initiated"
     else:
         return "Failed to initiate call"
+
 @app.route('/twiml', methods=['POST'])
 def twiml():
     global k, lang
+    print("Error occurred after /twiml")
     response = VoiceResponse()
     gather = Gather(num_digits=1, action=f'{URL}/webhooks/input')
     gather.say('Press 1 for English, 2 for Hindi, 3 for Kannada, 4 for Bengali.')
@@ -95,6 +100,7 @@ def twiml():
 
 @app.route('/webhooks/input', methods=['POST'])
 def handle_input():
+    print("Error occurred after handle input")
     global k, lang,s
     digits = request.values.get('Digits', None)
     if k == 1:
@@ -117,24 +123,30 @@ def handle_input():
 
 @app.route('/webhooks/recordings', methods=['POST'])
 def handle_recordings():
+    print("Error occurred after this")
     print(request,request.values)
     # recording_url = request.values.get('RecordingUrl')
     transcription = request.values.get('SpeechResult')
     # transcription = "can you tell me more about an elephant?"
     print(f"\n\nTranscription: {transcription}\n\n")
     
+    # url = 'https://c054-2401-4900-4bbf-57ec-b40d-4a91-bf2e-8ba4.ngrok-free.app/api/call'
+    # headers = {
+    #         "ngrok-skip-browser-warning": "69420",
+    #       },
     url = 'http://localhost:4000/api/call'
+
     payload = {
         'chatMessage': transcription,
         'isChatMessage': True,
         'isCallOngoing': True,
         'isCallEnded': False,
     }
-    response = requests.post(url, data=payload)
+    response = requests.post(url, json=payload)
     if response.status_code == 200:
         print("POST request successful about message")
     else:
-        print("POST request failed")
+        print("POST request failed with status code and message" , response.status_code, response.text)
 
     for _ in range(3):
         try:
