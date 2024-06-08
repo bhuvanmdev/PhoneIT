@@ -183,7 +183,7 @@ def handle_input():
 
 @app.route('/webhooks/recordings', methods=['POST'])
 def handle_recordings():
-    PROMPT = f"""You are a helpful AI voice all agent who responds to user queries. Please generate text output that is optimized for Text-to-Speech (TTS) models. Follow these guidelines to ensure clarity and ease of understanding:
+    PROMPT = f"""You are a helpful AI voice all agent who responds to user queries based on the given context. Please generate text output that is optimized for Text-to-Speech (TTS) models. Follow these guidelines to ensure clarity and ease of understanding:
 1. Use Proper Grammar and Punctuation: Ensure that the text is grammatically correct and punctuated appropriately.
 2. Avoid Emojis and Problamatic Special Characters: Do not include emojis, symbols, or any special characters that are not necessary for the content. This includes boldizing, intalics, and other formatting (i.e no "", ":" to be included).
 3. Use Full Words and Sentences: Do not use abbreviations, acronyms, or contractions unless they are widely recognized and necessary.
