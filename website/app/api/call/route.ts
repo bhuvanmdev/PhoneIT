@@ -5,14 +5,17 @@ import { NextResponse } from "next/server";
 
 let isCallOngoing: boolean = false;
 let isCallEnded: boolean = false;
+let isChatMessage: boolean = false;
 let messageValue: string = "Waiting for Call";
 let chatMessageValue: string | null = null;
 
 export async function GET(request: Request) {
     console.log("API Call made to check call status")
-    return NextResponse.json({ isCallOngoing: isCallOngoing , 
+    return NextResponse.json({ 
+        isCallOngoing: isCallOngoing , 
         isCallEnded : isCallEnded,
-        chatMessage : chatMessageValue
+        chatMessage : chatMessageValue,
+        isChatMessage : isChatMessage
     }, { status: 200 }, 
         );
 }
@@ -22,6 +25,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     isCallOngoing = body.isCallOngoing;
     isCallEnded = body.isCallEnded;
+    isChatMessage = body.isChatMessage;
     if (body.isChatMessage != null){
     chatMessageValue = body.chatMessage;
     }
