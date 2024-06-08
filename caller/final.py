@@ -36,7 +36,7 @@ indic_en_tokenizer, indic_en_model = initialize_model_and_tokenizer(indic_en_ckp
 
 # from translate import libre_translate_text as lbt
 
-dotenv_path = join("./.env")
+dotenv_path = join(r"/home/abhyuday/Desktop/ML-Haako/caller/.env")
 load_dotenv(dotenv_path)
 
 TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
@@ -102,7 +102,7 @@ uuid = ''
 l = []
 k = 1
 lang = "en-IN"
-dic = {'1': 'en-IN', '2': 'hi-IN', '3': 'kn-IN', '4': 'bn-IN'}  # 0 style for kan and beng
+dic = {'1': 'en-IN', '2': 'hi-IN', '3': 'kn-IN', '4': 'bn-IN',"5":'tn-IN'}  # 0 style for kan and beng
 call = s = None
 app = Flask(__name__)
 
@@ -205,17 +205,7 @@ Context:
     transcription = request.values.get('SpeechResult')
     print("adfal;kdfja; Transcription",transcription)
     # print(f"\n\nTranslation: {transcription}\n\n")
-    if lang!="en-IN":
-        transcription=translate(transcription,lang,0,en_indic_tokenizer1,en_indic_model1,indic_en_tokenizer,indic_en_model)
-    # transcription = lbt(transcription, lang.split('-')[0],'en')
-    # transcription = "can you tell me more about an elephant?"
-    con=""
-    for x in retriever.get_relevant_documents(transcription): #trans
-        con += x.page_content + '\n'
-    PROMPT += con
-    print(f"\n\nTranslation: {transcription}\n\n")
-    print(f"\n\nTranscription: {transcription}\n\n")
-    
+
     # url = 'https://a359-103-174-71-194.ngrok-free.app/api/call'
     # headers = {
     #     "ngrok-skip-browser-warning": "69420"
@@ -237,6 +227,19 @@ Context:
             print(f"POST request failed with status code {response.status_code} and message {response.text}")
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {e}")
+
+    if lang!="en-IN":
+        transcription=translate(transcription,lang,0,en_indic_tokenizer1,en_indic_model1,indic_en_tokenizer,indic_en_model)
+    # transcription = lbt(transcription, lang.split('-')[0],'en')
+    # transcription = "can you tell me more about an elephant?"
+    con=""
+    for x in retriever.get_relevant_documents(transcription): #trans
+        con += x.page_content + '\n'
+    PROMPT += con
+    print(f"\n\nTranslation: {transcription}\n\n")
+    print(f"\n\nTranscription: {transcription}\n\n")
+    
+    
 
     for _ in range(3):
         try:
