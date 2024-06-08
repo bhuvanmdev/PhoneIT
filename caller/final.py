@@ -173,8 +173,9 @@ def handle_input():
         response.say('Goodbye')
     else:
         print(f"DONE {k}")
+        response.say(l[-1], language=lang)
         gather = Gather(input="speech", language=lang, action=f'{URL}/webhooks/recordings', speech_timeout=3)
-        gather.say(l[-1], language=lang)
+        # gather.say(l[-1], language=lang)
         response.append(gather)
         s = datetime.now()
     k += 1
