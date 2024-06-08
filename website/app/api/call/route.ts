@@ -13,9 +13,10 @@ export async function GET(request: Request) {
     console.log("API Call made to check call status")
     const currMsg=chatMessageValue;
     const currIsMsg=isChatMessage;
-    let currAI=isAIResponse;
+    const currAI=isAIResponse;
     chatMessageValue=null;
     isChatMessage=false;
+    isAIResponse=false;
     return NextResponse.json({ 
         isCallOngoing: isCallOngoing , 
         isCallEnded : isCallEnded,
@@ -29,6 +30,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     const origin = request.headers.get('origin');
     const body = await request.json();
+    console.log("Received at website server" , body);
     isCallOngoing = body.isCallOngoing;
     isCallEnded = body.isCallEnded;
     isChatMessage = body.isChatMessage;
