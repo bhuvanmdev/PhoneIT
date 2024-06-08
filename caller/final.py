@@ -21,6 +21,7 @@ from langchain_community.vectorstores import FAISS
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from translator import *
+import requests
 
 BATCH_SIZE=4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -161,7 +162,7 @@ def twiml():
 
 @app.route('/webhooks/input', methods=['POST'])
 def handle_input():
-    print("Error occurred after handle input")
+    # print("Error occurred after handle input")
     global k, lang, s
     digits = request.values.get('Digits', None)
     if k == 1:
@@ -205,7 +206,7 @@ Context:
     print("adfal;kdfja; Transcription",transcription)
     # print(f"\n\nTranslation: {transcription}\n\n")
     if lang!="en-IN":
-        transcription=translate(transcription,lang,0,en_indic_tokenizer1,en_indic_model1,indic_en_tokenizer,indic_en_model,ip)
+        transcription=translate(transcription,lang,0,en_indic_tokenizer1,en_indic_model1,indic_en_tokenizer,indic_en_model)
     # transcription = lbt(transcription, lang.split('-')[0],'en')
     # transcription = "can you tell me more about an elephant?"
     con=""
@@ -248,7 +249,7 @@ Context:
             res = res.text
             res = re.search(PATTERN, res,re.IGNORECASE).group(1).strip()
             if lang!="en-IN":
-                res=translate(res,lang,1,en_indic_tokenizer1,en_indic_model1,indic_en_tokenizer,indic_en_model,ip)
+                res=translate(res,lang,1,en_indic_tokenizer1,en_indic_model1,indic_en_tokenizer,indic_en_model)
             # res = lbt(re.search(PATTERN, res,re.IGNORECASE).group(1).strip(), 'en',lang.split('-')[0])
             print(res)
             l.append(res)
@@ -269,7 +270,7 @@ Context:
                     print(f"POST request failed with status code {response.status_code} and message {response.text}")
             except requests.exceptions.RequestException as e:
                 print(f"Request failed: {e}")
-            l.append(re.search(PATTERN, res, re.IGNORECASE).group(1).strip())
+            # l.append(re.search(PATTERN, res, re.IGNORECASE).group(1).strip())
             break
         except Exception as e:
             print(f"Error in model generation: {e}")
@@ -280,5 +281,5 @@ Context:
     print(datetime.now() - s)
     return str(response)
 
-if _name_ == '_main_':
+if __name__ == '__main__':
     app.run(port=3000)
