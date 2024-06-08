@@ -102,7 +102,7 @@ uuid = ''
 l = []
 k = 1
 lang = "en-IN"
-dic = {'1': 'en-IN', '2': 'hi-IN', '3': 'kn-IN', '4': 'bn-IN',"5":'tn-IN'}  # 0 style for kan and beng
+dic = {'1': 'en-IN', '2': 'hi-IN', '3': 'kn-IN', '4': 'bn-IN',"5":'ta-IN'}  # 0 style for kan and beng
 call = s = None
 app = Flask(__name__)
 
@@ -155,7 +155,7 @@ def twiml():
     print("Error occurred after /twiml")
     response = VoiceResponse()
     gather = Gather(num_digits=1, action=f'{URL}/webhooks/input')
-    gather.say('Press 1 for English, 2 for Hindi, 3 for Kannada, 4 for Bengali.')
+    gather.say('Press 1 for English, 2 for Hindi, 3 for Kannada, 4 for Bengali. 5 for Tamil. ')
     response.append(gather)
     # print(f"\n\n\nstr:{response._str()},type:{type(response)},dir:{response.dir_()},raw:{response}\n\n\n")
     return str(response)
@@ -166,7 +166,7 @@ def handle_input():
     global k, lang, s
     digits = request.values.get('Digits', None)
     if k == 1:
-        l.append({1: 'Hello', 2: 'नमस्ते', 3: 'ನಮಸ್ಕಾರ', 4: 'হ্যালো'}.get(int(digits), 'Hello'))
+        l.append({1: 'Hello', 2: 'नमस्ते', 3: 'ನಮಸ್ಕಾರ', 4: 'হ্যালো', 5:"வணக்கம்" }.get(int(digits), 'Hello'))
         lang = dic.get(digits, 'en-IN')
     response = VoiceResponse()
     if digits == '0':
