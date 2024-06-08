@@ -7,9 +7,7 @@ import { Mic } from 'lucide-react';
 export default function Home() {
   const [callStatus, setCallStatus] = useState("Waiting for call");
   const [isAIResponse, setIsAIResponse] = useState(false);
-  const [messageData, setMessageData] = useState<any>([
-    'test awdkjabklajwbd.kjawbwd.,a wdljkawndkljanwljdh olawnd;ahsodh poahdo;j hwipdujh iojdhioep hdiupeh odd haoidh qiopuh'
-  ]);
+  const [messageData, setMessageData] = useState<any>([]);
   useEffect(() => {
     const fetchCallStatus = async () => {
       try {
