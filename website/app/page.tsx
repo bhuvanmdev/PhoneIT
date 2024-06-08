@@ -2,8 +2,8 @@
 import Chat from "@/components/Chat";
 import ResponseChat from "@/components/ResponseChat";
 import { useState, useEffect } from "react";
-import { Mic } from "lucide-react";
-import { doc, setDoc } from "firebase/firestore";
+import { ArrowLeftCircle, ArrowRight, Mic } from "lucide-react";
+import { collection, doc, getDocs, setDoc } from "firebase/firestore";
 import { db } from "./firebase";
 import { toast } from "react-toastify";
 
@@ -13,6 +13,9 @@ export default function Home() {
   const [callStatus, setCallStatus] = useState("Waiting for call");
   const [isAIResponse, setIsAIResponse] = useState(false);
   const [messageData, setMessageData] = useState<any>([]);
+  const [prevCallsData, setPrevCallsData] = useState<any>([]);
+
+  const [currHistory, setCurrHistory] = useState<any>([]);
   useEffect(() => {
     if (callStatus === "Call Ended") {
       return;
@@ -51,12 +54,53 @@ export default function Home() {
   const parseAIResponse = (response: string) => {
     return response.replace(/<say>|<\/say>/g, "");
   };
+  const getCallsData = async () => {
+    try {
+      const callsRef = collection(db, "calls");
+      const callsSnapshot = await getDocs(callsRef);
+      const callsData = callsSnapshot.docs.map((doc) => {
+        return { data: doc.data(), docId: doc.id };
+      });
+      setPrevCallsData(callsData);
+      console.log(callsData);
+    } catch (error) {
+      console.error("Error fetching calls data:", error);
+    }
+  };
 
+  useEffect(() => {
+    getCallsData();
+  }, []);
+  const clearHistory = () => {
+    setCurrHistory([]);
+  };
   return (
     <main className="flex min-h-screen justify-between p-24">
-      <div className="flex w-1/2 flex-col justify-center">
+      {currHistory.data && (
+        <div className="absolute h-screen w-screen top-0 bottom-0 left-0 right-0 bg-black z-40 mt-16 p-12 overflow-x-hidden">
+          <div className="flex text-xl justify-between mb-4">
+            <div className="flex gap-4">
+              <div onClick={clearHistory}>
+                <ArrowLeftCircle />
+              </div>
+              Transcription History
+            </div>
+            <div>{currHistory.data.callStatus}</div>
+          </div>
+          <div>
+            {currHistory.data.messages.map((data: any, index: number) => {
+              return index % 2 == 0 ? (
+                <Chat key={index} msg={data} />
+              ) : (
+                <ResponseChat key={index} msg={data} />
+              );
+            })}
+          </div>
+        </div>
+      )}
+      <div className="flex w-1/2 flex-col justify-between">
         <div
-          className="text-4xl text-center flex flex-col items-center justify-center gap-4"
+          className="height-50 text-4xl h-1/2 text-center flex flex-col items-center justify-center gap-4"
           onClick={async () => {
             setCallStatus("Call Ended");
             const dateAndTimeNow = new Date().toLocaleString();
@@ -82,6 +126,28 @@ export default function Home() {
             </div>
           ) : null}
           {callStatus}
+        </div>
+        <div className="height-50 overflow-auto">
+          <div className="mb-2 text-xl">Previous calls</div>
+          <div className="">
+            <div className="flex flex-col gap-4">
+              {prevCallsData.map((data: any, index: number) => {
+                return (
+                  <div
+                    key={index}
+                    onClick={() => {
+                      setCurrHistory(data);
+                      console.log(data);
+                    }}
+                    className="flex justify-between items-center border-2 border-slate-800 rounded-md p-4"
+                  >
+                    <div className="">{data.docId}</div>
+                    <ArrowRight size={16} className=" cursor-pointer" />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
       <div className="flex flex-col w-1/2 relative">
