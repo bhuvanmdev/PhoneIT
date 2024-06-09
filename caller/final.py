@@ -87,7 +87,7 @@ embeddings = HuggingFaceEmbeddings(
     model_kwargs=model_kwargs, # Pass the model configuration options
     encode_kwargs=encode_kwargs # Pass the encoding options
 )
-splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=30)
+splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=30)
 documents = splitter.split_documents(pages_neuro)
 db = FAISS.from_documents(documents, embeddings)
 

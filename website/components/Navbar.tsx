@@ -3,7 +3,7 @@ import { Home } from 'lucide-react';
 
 const Navbar = () => {
     return (
-      <nav className="flex justify-between p-4 absolute w-full bg-gray-900">
+      <nav className="flex justify-between p-4 absolute w-full bg-gray-900 z-50">
         <div ><Link href={'/'} className="flex gap-1 justify-center items-center"><Home size={16}/>Home</Link></div>
         <div>
             <ul className="flex gap-6">
