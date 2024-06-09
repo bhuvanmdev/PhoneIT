@@ -7,12 +7,9 @@ from datetime import datetime
 from twilio.rest import Client
 from twilio.twiml.voice_response import VoiceResponse, Gather
 import re
-from IndicTrans2.huggingface_interface.models.main_functions import initialize_model_and_tokenizer
-import torch
 import time
 from datetime import datetime as d
-import google
-import os,re
+import re
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import CharacterTextSplitter, RecursiveCharacterTextSplitter
@@ -20,18 +17,18 @@ from langchain.embeddings import CacheBackedEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
-from translator import *
+import translator 
 import requests
 
-BATCH_SIZE=4
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-quantization = "4-bit"
-en_indic_ckpt_dir1 = "ai4bharat/indictrans2-en-indic-dist-200M"
-en_indic_tokenizer1, en_indic_model1 = initialize_model_and_tokenizer(en_indic_ckpt_dir1, "en-indic","4-bit",DEVICE=DEVICE)
-indic_en_ckpt_dir = "ai4bharat/indictrans2-indic-en-dist-200M"  # ai4bharat/indictrans2-indic-en-dist-200M
-indic_en_tokenizer, indic_en_model = initialize_model_and_tokenizer(indic_en_ckpt_dir, "indic-en", "4-bit",DEVICE=DEVICE)
+# BATCH_SIZE=4
+# DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+# quantization = "4-bit"
+# en_indic_ckpt_dir1 = "ai4bharat/indictrans2-en-indic-dist-200M"
+# en_indic_tokenizer1, en_indic_model1 = initialize_model_and_tokenizer(en_indic_ckpt_dir1, "en-indic","4-bit",DEVICE=DEVICE)
+# indic_en_ckpt_dir = "ai4bharat/indictrans2-indic-en-dist-200M"  # ai4bharat/indictrans2-indic-en-dist-200M
+# indic_en_tokenizer, indic_en_model = initialize_model_and_tokenizer(indic_en_ckpt_dir, "indic-en", "4-bit",DEVICE=DEVICE)
 
-
+translate = translator.Translate("ai4bharat/indictrans2-en-indic-dist-200M","ai4bharat/indictrans2-indic-en-dist-200M")
 
 
 # from translate import libre_translate_text as lbt
@@ -46,7 +43,7 @@ URL = os.getenv("URL")
 TO_NUM = os.getenv("TO_NUM")
 GKEY = os.getenv("GKEY")
 LLM = os.getenv("LLM")
-PROMPT = f"""You are a helpful AI voice all agent who responds to user queries. Please generate text output that is optimized for Text-to-Speech (TTS) models. Follow these guidelines to ensure clarity and ease of understanding:
+PROMPT = f"""You are a helpful AI voice agent who responds to user queries regarding government schemes based only from the given context. Please generate text output that is optimized for Text-to-Speech (TTS) models. Follow these guidelines to ensure clarity and ease of understanding:
 1. Use Proper Grammar and Punctuation: Ensure that the text is grammatically correct and punctuated appropriately.
 2. Avoid Emojis and Problamatic Special Characters: Do not include emojis, symbols, or any special characters that are not necessary for the content. This includes boldizing, intalics, and other formatting (i.e no "", ":" to be included).
 3. Use Full Words and Sentences: Do not use abbreviations, acronyms, or contractions unless they are widely recognized and necessary.
@@ -63,7 +60,22 @@ AI: "<Say>To make a phone call, you will need a phone and the person's phone num
 Context:
 """
 PATTERN = r"<say>(.*?)</say>"
-
+PROMPT = f"""You are a helpful AI voice all agent who responds to user queries based on the given context. Please generate text output that is optimized for Text-to-Speech (TTS) models. Follow these guidelines to ensure clarity and ease of understanding:
+1. Use Proper Grammar and Punctuation: Ensure that the text is grammatically correct and punctuated appropriately.
+2. Avoid Emojis and Problamatic Special Characters: Do not include emojis, symbols, or any special characters that are not necessary for the content. This includes boldizing, intalics, and other formatting (i.e no "", ":" to be included).
+3. Use Full Words and Sentences: Do not use abbreviations, acronyms, or contractions unless they are widely recognized and necessary.
+4. Maintain a Formal and Friendly Tone: Keep the tone formal and professional.
+5. Avoid Slang and Colloquialisms: Use standard language and avoid regional slang or colloquial expressions.
+6. Structure the Text Clearly: Use paragraphs to separate different ideas and ensure the text flows logically.
+7. Use Simple Language: Avoid complex words or phrases when simpler alternatives are available.
+8. Provide Clear Context: Ensure that the content is self-explanatory and does not rely on external context to be understood.
+9. Make The Text Concise: Keep the text concise and to the point, avoiding unnecessary details or information.
+10. Use SSML format: Format the text into "twilio's" version of SSML between <say> and </say> tag. There can be only 1 <say> and </say> tag.
+Example:
+User: I have lost my wallet, how do i get it back?
+AI: "<Say>To make a phone call, you will need a phone and the person's phone number. First, locate the phone number you wish to call. Then, open your phone's dialing app.  Enter the phone number using the keypad and press the call button. The person you are calling will receive your call.</Say>"
+Context:
+"""
 genai.configure(api_key=GKEY)
 
 model = genai.GenerativeModel(LLM)
@@ -97,7 +109,7 @@ retriever = db.as_retriever(search_kwargs={"k":2})
 
 
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-print("env values:", TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_NUMBER, URL, TO_NUM, GKEY)
+# print("env values:", TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_NUMBER, URL, TO_NUM, GKEY)
 uuid = ''
 l = []
 k = 1
@@ -188,23 +200,7 @@ def handle_input():
 
 @app.route('/webhooks/recordings', methods=['POST'])
 def handle_recordings():
-    PROMPT = f"""You are a helpful AI voice all agent who responds to user queries based on the given context. Please generate text output that is optimized for Text-to-Speech (TTS) models. Follow these guidelines to ensure clarity and ease of understanding:
-1. Use Proper Grammar and Punctuation: Ensure that the text is grammatically correct and punctuated appropriately.
-2. Avoid Emojis and Problamatic Special Characters: Do not include emojis, symbols, or any special characters that are not necessary for the content. This includes boldizing, intalics, and other formatting (i.e no "", ":" to be included).
-3. Use Full Words and Sentences: Do not use abbreviations, acronyms, or contractions unless they are widely recognized and necessary.
-4. Maintain a Formal and Friendly Tone: Keep the tone formal and professional.
-5. Avoid Slang and Colloquialisms: Use standard language and avoid regional slang or colloquial expressions.
-6. Structure the Text Clearly: Use paragraphs to separate different ideas and ensure the text flows logically.
-7. Use Simple Language: Avoid complex words or phrases when simpler alternatives are available.
-8. Provide Clear Context: Ensure that the content is self-explanatory and does not rely on external context to be understood.
-9. Make The Text Concise: Keep the text concise and to the point, avoiding unnecessary details or information.
-10. Use SSML format: Format the text into "twilio's" version of SSML between <say> and </say> tag. There can be only 1 <say> and </say> tag.
-Example:
-User: I have lost my wallet, how do i get it back?
-AI: "<Say>To make a phone call, you will need a phone and the person's phone number. First, locate the phone number you wish to call. Then, open your phone's dialing app.  Enter the phone number using the keypad and press the call button. The person you are calling will receive your call.</Say>"
-Context:
-"""
-    print("Error occurred after this")
+    # print("Error occurred after this")
     print(request, request.values)
     
     transcription = request.values.get('SpeechResult')
@@ -234,7 +230,7 @@ Context:
         print(f"Request failed: {e}")
 
     if lang!="en-IN":
-        transcription=translate(transcription,lang,0,en_indic_tokenizer1,en_indic_model1,indic_en_tokenizer,indic_en_model)
+        transcription=translate.translate(transcription,lang,0)
     # transcription = lbt(transcription, lang.split('-')[0],'en')
     # transcription = "can you tell me more about an elephant?"
     con=""
@@ -257,7 +253,7 @@ Context:
             res = res.text
             res = re.search(PATTERN, res,re.IGNORECASE).group(1).strip()
             if lang!="en-IN":
-                res=translate(res,lang,1,en_indic_tokenizer1,en_indic_model1,indic_en_tokenizer,indic_en_model)
+                res=translate.translate(res,lang,1)
             # res = lbt(re.search(PATTERN, res,re.IGNORECASE).group(1).strip(), 'en',lang.split('-')[0])
             print(res)
             l.append(res)
