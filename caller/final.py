@@ -62,7 +62,7 @@ User: I have lost my wallet, how do i get it back?
 AI: "<Say>To make a phone call, you will need a phone and the person's phone number. First, locate the phone number you wish to call. Then, open your phone's dialing app.  Enter the phone number using the keypad and press the call button. The person you are calling will receive your call.</Say>"
 Context:
 """
-PATTERN = r"\<say\>(.*?)\</say\>"
+PATTERN = r"<say>(.*?)</say>"
 
 genai.configure(api_key=GKEY)
 
