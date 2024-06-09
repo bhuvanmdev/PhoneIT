@@ -179,7 +179,7 @@ def handle_input():
     global k, lang, s
     digits = request.values.get('Digits', None)
     if digits:
-        l.append({1: 'Hello. When I stop speaking, please ask your query and wait for 3 seconds.', 2: 'नमस्कार। जब मैं बोलना बंद कर दूं, तो कृपया अपना प्रश्न पूछें और 3 सेकंड प्रतीक्षा करें।' , 3: 'ನಮಸ್ಕಾರ. ನಾನು ಮಾತನಾಡುವುದನ್ನು ನಿಲ್ಲಿಸಿದಾಗ, ದಯವಿಟ್ಟು ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಕೇಳಿ ಮತ್ತು 3 ಸೆಕೆಂಡುಗಳ ಕಾಲ ಕಾಯಿರಿ.', 4: 'নমস্কার। আমি কথা বলা বন্ধ করলে, দয়া করে আপনার প্রশ্ন জিজ্ঞাসা করুন এবং 3 সেকেন্ড অপেক্ষা করুন।', 5:"ஹலோ! நான் பேசுவதை நிறுத்தும்போது, உங்கள் கேள்வியைக் கேட்டு 3 வினாடிகள் காத்திருக்கவும்." }.get(int(digits), 'Hello! When I stop speaking, please ask your question and wait for 3 seconds.'))
+        l.append({1: 'Hello! When I stop speaking, please ask your query and wait for 3 seconds.', 2: 'नमस्कार। जब मैं बोलना बंद कर दूं, तो कृपया अपना प्रश्न पूछें और 3 सेकंड प्रतीक्षा करें।' , 3: 'ನಮಸ್ಕಾರ. ನಾನು ಮಾತನಾಡುವುದನ್ನು ನಿಲ್ಲಿಸಿದಾಗ, ದಯವಿಟ್ಟು ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಕೇಳಿ ಮತ್ತು 3 ಸೆಕೆಂಡುಗಳ ಕಾಲ ಕಾಯಿರಿ.', 4: 'নমস্কার। আমি কথা বলা বন্ধ করলে, দয়া করে আপনার প্রশ্ন জিজ্ঞাসা করুন এবং 3 সেকেন্ড অপেক্ষা করুন।', 5:"ஹலோ! நான் பேசுவதை நிறுத்தும்போது, உங்கள் கேள்வியைக் கேட்டு 3 வினாடிகள் காத்திருக்கவும்." }.get(int(digits), 'Hello! When I stop speaking, please ask your question and wait for 3 seconds.'))
         lang = dic.get(digits, 'en-IN')
     response = VoiceResponse()
     if digits == '0':
