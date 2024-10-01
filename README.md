@@ -4,10 +4,13 @@ An application that when deployed can establish a call service, where an AI agen
 
 ## Features
 
+![image](https://github.com/user-attachments/assets/b100852e-3fe0-47a1-95fd-f2031c7e5967)
+
 - Utilizes various open-source models like [indictrans2](https://huggingface.co/ai4bharat/indictrans2-en-indic-dist-200M) for multi-lingual efficiency and performance.
 - Contains an efficient RAG pipeline ensuring the AI provides factual information via a vector DB(FAISS).
 - Integrated with Twilio API.
 - Currently the cheapest option in the market as of its creation time.
+- The demo video of the application is [here](https://drive.google.com/file/d/1wGkpXcnw34UwOZg-EefB1Ji6S1SCTpBq/view?usp=sharing).
 
 ## Installation
 
